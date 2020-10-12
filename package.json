@@ -17,6 +17,7 @@
     "webpack-cli": "^4.0.0"
   },
   "dependencies": {
-    "chess.js": "^0.11.0"
+    "chess.js": "^0.11.0",
+    "jquery": "^3.5.1"
   }
 }

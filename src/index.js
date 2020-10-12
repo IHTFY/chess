@@ -61,7 +61,7 @@ function onDrop(source, target) {
     promotion: 'q'
   });
 
-  removeGreySquares();
+  removeHighlightSquares();
   if (move === null) {
     return 'snapback';
   }
@@ -82,30 +82,25 @@ function onMouseoverSquare(square, piece) {
 
   if (moves.length === 0) return;
 
-  greySquare(square);
+  highlightSquare(square);
 
   for (let i = 0; i < moves.length; i++) {
-    greySquare(moves[i].to);
+    highlightSquare(moves[i].to);
   }
 };
 
 function onMouseoutSquare(square, piece) {
-  removeGreySquares();
+  removeHighlightSquares();
 };
 
-function removeGreySquares() {
-  $('#board .square-55d63').css('background', '');
+function removeHighlightSquares() {
+  $('#board .square-55d63').css('filter', '');
 };
 
-function greySquare(square) {
+function highlightSquare(square) {
   let squareEl = $('#board .square-' + square);
 
-  let background = '#a9a9a9';
-  if (squareEl.hasClass('black-3c85d') === true) {
-    background = '#696969';
-  }
-
-  squareEl.css('background', background);
+  squareEl.css('filter', 'brightness(2)');
 };
 
 let cfg = {
@@ -119,4 +114,4 @@ let cfg = {
   onSnapEnd: onSnapEnd
 };
 board = Chessboard('board', cfg);
-// $(window).resize(board.resize);
+$(window).resize(board.resize);
