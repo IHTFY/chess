@@ -47,7 +47,7 @@ function renderMoveHistory(moves) {
   let historyElement = $('#move-history').empty();
   historyElement.empty();
   for (let i = 0; i < moves.length; i = i + 2) {
-    historyElement.append('<span>' + moves[i] + ' ' + (moves[i + 1] ? moves[i + 1] : ' ') + '</span><br>')
+    historyElement.append(`<span>${i / 2 + 1}. ${moves[i]} ${moves[i + 1] ? moves[i + 1] : ''} </span><br>`);
   }
   historyElement.scrollTop(historyElement[0].scrollHeight);
 
@@ -111,8 +111,7 @@ function greySquare(square) {
 let cfg = {
   draggable: true,
   position: 'start',
-  // pieceTheme: 'https://chessboardjs.com/img/chesspieces/alpha/{piece}.png',
-  pieceTheme:'https://lichess1.org/assets/_v88h3i/piece/alpha/{piece}.svg',
+  pieceTheme: 'https://lichess1.org/assets/_v88h3i/piece/alpha/{piece}.svg',
   onDragStart: onDragStart,
   onDrop: onDrop,
   onMouseoutSquare: onMouseoutSquare,
@@ -120,4 +119,4 @@ let cfg = {
   onSnapEnd: onSnapEnd
 };
 board = Chessboard('board', cfg);
-$(window).resize(board.resize);
+// $(window).resize(board.resize);
