@@ -1,6 +1,6 @@
 .container {
   display: flex;
-  height: 100px;
+  height: 800px;
 }
 
 .boardWrapper {
@@ -9,6 +9,7 @@
 
 .info {
   flex-grow: 1;
+  margin: 10px;
 }
 
 /*! chessboard.js v1.0.0 | (c) 2019 Chris Oakman | MIT License chessboardjs.com/license */
@@ -16,7 +17,7 @@
   clear: both;
 }
 .board-b72b1 {
-  border: 2px solid #404040;
+  border: 4px solid #404040;
   box-sizing: content-box;
 }
 .square-55d63 {
@@ -31,11 +32,11 @@
 }
 .white-1e1d7 {
   background-color: #667188;
-  color: #282f3f;
+  color: #ffffff;
 }
 .black-3c85d {
   background-color: #282f3f;
-  color: #667188;
+  color: #ffffff;
 }
 .highlight1-32417,
 .highlight2-9c5d2 {
