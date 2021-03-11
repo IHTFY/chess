@@ -6,7 +6,7 @@ let board;
 let game = new Chess();
 
 
-/*The "AI" part starts here */
+/* AI */
 
 function calculateBestMove(game) {
 
@@ -16,7 +16,7 @@ function calculateBestMove(game) {
 
 };
 
-/* board visualization and games state handling starts here*/
+/* Game Logic*/
 
 function onDragStart(source, piece, position, orientation) {
   if (game.in_checkmate() === true || game.in_draw() === true ||
@@ -31,23 +31,45 @@ function makeBestMove() {
   board.position(game.fen());
   renderMoveHistory(game.history());
   if (game.game_over()) {
-    alert('Game over');
+    doGameOver(game);
   }
 };
 
 function getBestMove(game) {
-  if (game.game_over()) {
-    alert('Game over');
-  }
   let bestMove = calculateBestMove(game);
   return bestMove;
 };
 
+function getResult(game) {
+  if (game.game_over()) {
+    if (game.in_checkmate()) {
+      if (game.turn() === 'w') {
+        return 'b';
+      }
+      return 'w';
+    }
+    return 'draw';
+  }
+  return 'playing';
+}
+
+function doGameOver(game) {
+  const result = getResult(game);
+  setTimeout(() => {
+    alert({
+      'draw': 'Draw',
+      'w': 'White Wins',
+      'b': 'Black Wins'
+    }[result])
+  }, 250);
+
+}
+
 function renderMoveHistory(moves) {
-  let historyElement = $('#move-history').empty();
+  let historyElement = $('#move-history');
   historyElement.empty();
   for (let i = 0; i < moves.length; i = i + 2) {
-    historyElement.append(`<span>${i / 2 + 1}. ${moves[i]} ${moves[i + 1] ? moves[i + 1] : ''} </span><br>`);
+    historyElement.append(`<span>${i / 2 + 1}. ${moves[i]} ${moves[i + 1] ? moves[i + 1] : ''} </span> <br>`);
   }
   historyElement.scrollTop(historyElement[0].scrollHeight);
 
@@ -67,7 +89,12 @@ function onDrop(source, target) {
   }
 
   renderMoveHistory(game.history());
-  window.setTimeout(makeBestMove, 250);
+
+  if (game.game_over()) {
+    doGameOver(game);
+  } else {
+    window.setTimeout(makeBestMove, 250);
+  }
 };
 
 function onSnapEnd() {
@@ -113,5 +140,5 @@ let cfg = {
   onMouseoverSquare: onMouseoverSquare,
   onSnapEnd: onSnapEnd
 };
+
 board = Chessboard('board', cfg);
-$(window).resize(board.resize);

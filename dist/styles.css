@@ -1,6 +1,10 @@
+html {
+  overscroll-behavior: none;
+}
+
 .container {
   display: flex;
-  height: 800px;
+  width: 1000px;
 }
 
 .boardWrapper {
