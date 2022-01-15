@@ -4,56 +4,119 @@ import $ from 'jQuery';
 
 let board;
 let game = new Chess();
+const AI = {
+  COLOR: -1, // black = -1, white = 1
+  DEPTH: 3
+}
 
+const shuffle = (a) => {
+  for (let i = 0; i < a.length - 1; i++) {
+    let j = i + Math.floor(Math.random() * (a.length - i));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
 
 /* AI */
 
-function calculateBestMove(game) {
+const getPieceValue = (piece) => {
+  if (piece === null) {
+    return 0;
+  }
+  return ({
+    p: 15,
+    n: 80,
+    b: 85,
+    r: 130,
+    q: 260,
+    k: 1000
+  }[piece.type.toLowerCase()]) * (piece.color === 'w' ? 1 : -1);
 
-  let newGameMoves = game.moves();
+}
 
-  return newGameMoves[Math.floor(Math.random() * newGameMoves.length)];
+const evaluateBoard = (board) => {
+  let materialBalance = 0;
+  let totalEvaluation = 0;
 
+  for (let i = 0; i < 8; i++) {
+    for (let j = 0; j < 8; j++) {
+      materialBalance += getPieceValue(board[i][j]);
+    }
+  }
+
+  totalEvaluation = materialBalance;
+
+  return totalEvaluation;
+}
+
+const minimaxRoot = (depth, game, isBlack) => {
+  let newGameMoves = shuffle(game.moves());
+  let bestMove = null;
+  let bestScore = -Infinity;
+
+  for (let newGameMove of newGameMoves) {
+    game.move(newGameMove);
+    let moveScore = minimax(depth - 1, game, -Infinity, Infinity, !isBlack);
+    game.undo();
+    if (moveScore >= bestScore) {
+      bestScore = moveScore;
+      bestMove = newGameMove;
+    }
+  }
+
+
+  return bestMove;
 };
+
+const minimax = (depth, game, alpha, beta, isWhite) => {
+  if (depth === 0) {
+    return AI.COLOR * evaluateBoard(game.board());
+  }
+
+  let newGameMoves = shuffle(game.moves());
+  let bestMove = isWhite ? -Infinity : Infinity;
+
+  for (let newGameMove of newGameMoves) {
+    game.move(newGameMove);
+    bestMove = isWhite ?
+      Math.max(bestMove, minimax(depth - 1, game, alpha, beta, !isWhite)) :
+      Math.min(bestMove, minimax(depth - 1, game, alpha, beta, !isWhite));
+    game.undo();
+    if (isWhite) {
+      alpha = Math.max(alpha, bestMove);
+    } else {
+      beta = Math.min(beta, bestMove);
+    }
+    if (beta <= alpha) {
+      return bestMove;
+    }
+  }
+
+  return bestMove;
+}
+
+
 
 /* Game Logic*/
 
-function onDragStart(source, piece, position, orientation) {
+const onDragStart = (source, piece, position, orientation) => {
   if (game.in_checkmate() === true || game.in_draw() === true ||
     piece.search(/^b/) !== -1) {
     return false;
   }
 };
 
-function makeBestMove() {
-  let bestMove = getBestMove(game);
-  game.move(bestMove);
-  board.position(game.fen());
-  renderMoveHistory(game.history());
-  if (game.game_over()) {
-    doGameOver(game);
+const getResult = (game) => {
+  if (!game.game_over()) {
+    return 'playing';
   }
-};
-
-function getBestMove(game) {
-  let bestMove = calculateBestMove(game);
-  return bestMove;
-};
-
-function getResult(game) {
-  if (game.game_over()) {
-    if (game.in_checkmate()) {
-      if (game.turn() === 'w') {
-        return 'b';
-      }
-      return 'w';
-    }
+  if (!game.in_checkmate()) {
     return 'draw';
   }
-  return 'playing';
+  return game.turn() === 'w' ? 'b' : 'w';
 }
 
-function doGameOver(game) {
+const doGameOver = (game) => {
   const result = getResult(game);
   setTimeout(() => {
     alert({
@@ -65,17 +128,43 @@ function doGameOver(game) {
 
 }
 
-function renderMoveHistory(moves) {
+const getBestMove = (game) => {
+  let bestMove = minimaxRoot(AI.DEPTH, game, AI.COLOR === -1);
+  // let bestMove = calculateBestMove(game);
+  return bestMove;
+};
+
+const makeBestMove = () => {
+  let bestMove = getBestMove(game);
+  game.move(bestMove);
+  board.position(game.fen());
+  renderMoveHistory(game.history());
+  if (game.game_over()) {
+    doGameOver(game);
+  }
+};
+
+const renderMoveHistory = (moves) => {
   let historyElement = $('#move-history');
   historyElement.empty();
   for (let i = 0; i < moves.length; i = i + 2) {
     historyElement.append(`<span>${i / 2 + 1}. ${moves[i]} ${moves[i + 1] ? moves[i + 1] : ''} </span> <br>`);
   }
   historyElement.scrollTop(historyElement[0].scrollHeight);
-
 };
 
-function onDrop(source, target) {
+
+const removeHighlightSquares = () => {
+  $('#board .square-55d63').css('filter', '');
+};
+
+const highlightSquare = (square) => {
+  let squareEl = $('#board .square-' + square);
+
+  squareEl.css('filter', 'brightness(2)');
+};
+
+const onDrop = (source, target) => {
 
   let move = game.move({
     from: source,
@@ -97,11 +186,8 @@ function onDrop(source, target) {
   }
 };
 
-function onSnapEnd() {
-  board.position(game.fen());
-};
 
-function onMouseoverSquare(square, piece) {
+const onMouseoverSquare = (square, piece) => {
   let moves = game.moves({
     square: square,
     verbose: true
@@ -116,29 +202,15 @@ function onMouseoverSquare(square, piece) {
   }
 };
 
-function onMouseoutSquare(square, piece) {
-  removeHighlightSquares();
-};
-
-function removeHighlightSquares() {
-  $('#board .square-55d63').css('filter', '');
-};
-
-function highlightSquare(square) {
-  let squareEl = $('#board .square-' + square);
-
-  squareEl.css('filter', 'brightness(2)');
-};
-
-let cfg = {
+const cfg = {
   draggable: true,
   position: 'start',
   pieceTheme: 'https://lichess1.org/assets/_v88h3i/piece/alpha/{piece}.svg',
   onDragStart: onDragStart,
   onDrop: onDrop,
-  onMouseoutSquare: onMouseoutSquare,
+  onMouseoutSquare: (square, piece) => removeHighlightSquares(),
   onMouseoverSquare: onMouseoverSquare,
-  onSnapEnd: onSnapEnd
+  onSnapEnd: () => board.position(game.fen())
 };
 
 board = Chessboard('board', cfg);
